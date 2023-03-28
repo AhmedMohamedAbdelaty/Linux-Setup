@@ -5,7 +5,7 @@ My linux Environment setup (apps, settings and optimizations)
 
 ### **Table of Contents**
 
-- [My Terminal Setup](#My Terminal Setup) (Zsh, Oh my Zsh, and Powerlevel10k)
+- [My Terminal Setup](#My-Terminal-Setup) (Zsh, Oh my Zsh, and Powerlevel10k)
 - VS Code (C++)
 - Linux Distribution configuration
 - Linux Themes
