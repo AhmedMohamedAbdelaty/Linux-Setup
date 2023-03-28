@@ -1,12 +1,12 @@
 # Linux-Setup
-My linux Environment setup (apps, settings and optimizations)
+My Linux Environment setup (apps, settings and optimizations)
 
 ----
 
 ### **Table of Contents**
 
 - [My Terminal Setup](#My-Terminal-Setup) (Zsh, Oh my Zsh, and Powerlevel10k)
-- VS Code (C++)
+- [VS Code](#VS-Code) (for Competitive Programming, C++)
 - Linux Distribution configuration
 - Linux Themes
 - Useful Apps
@@ -93,10 +93,10 @@ My linux Environment setup (apps, settings and optimizations)
 
   - first install the fonts : Download these four ttf files (you have to change the font of the terminal to MesloLGS NF) : 
 
-    - [MesloLGS NF Regular.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS NF Regular.ttf)
-    - [MesloLGS NF Bold.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS NF Bold.ttf)
-    - [MesloLGS NF Italic.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS NF Italic.ttf)
-    - [MesloLGS NF Bold Italic.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS NF Bold Italic.ttf)
+    - [MesloLGS NF Regular.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf)
+    - [MesloLGS NF Bold.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf)
+    - [MesloLGS NF Italic.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf)
+    - [MesloLGS NF Bold Italic.ttf](https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf)
 
   - Install [powerlevel10k](https://github.com/romkatv/powerlevel10k#oh-my-zsh) for Oh my zsh 
 
@@ -176,3 +176,4 @@ My linux Environment setup (apps, settings and optimizations)
 
 ------
 
+# VS Code
