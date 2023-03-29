@@ -3,7 +3,7 @@
 My Linux Environment setup (apps, settings and optimizations)
 </p>
 <p align="center">
-  <img width="800" height="500" src="https://user-images.githubusercontent.com/73834838/228386835-de808131-3885-4ba0-975e-c4073f99d4a2.gif">
+  <img  src="https://user-images.githubusercontent.com/73834838/228386835-de808131-3885-4ba0-975e-c4073f99d4a2.gif">
 </p>
 
 
