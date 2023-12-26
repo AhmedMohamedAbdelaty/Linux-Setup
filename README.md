@@ -14,11 +14,11 @@ My Linux Environment setup (apps, settings and optimizations)
 
 ### **Table of Contents**
 
-- [My Terminal Setup](#My-Terminal-Setup) (Zsh, Oh my Zsh, and Powerlevel10k)
-- [VS Code](#VS-Code) (for Competitive Programming, C++)
-- Linux Distribution configuration
-- Linux Themes
-- Useful Apps
+- [x] [My Terminal Setup](#My-Terminal-Setup) (Zsh, Oh my Zsh, and Powerlevel10k)
+- [ ] VS Code
+- [ ] Linux Distribution configuration
+- [ ] Linux Themes
+- [ ] Useful Apps
 
 -----
 
@@ -182,7 +182,4 @@ My Linux Environment setup (apps, settings and optimizations)
 
 
 
-
-------
-
-# VS Code
+# 
