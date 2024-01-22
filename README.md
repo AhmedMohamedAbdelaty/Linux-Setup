@@ -184,7 +184,7 @@ By following the step-by-step instructions, you will be able to create a persona
  -->
 
 ## Kitty Terminal
-The theme credits goes to [lactua](https://github.com/lactua/dotfiles/tree/master)
+The theme credits goes to [lactua](https://github.com/lactua/dotfiles/tree/master). You can download the config from [here](https://downgit.evecalm.com/#/home?url=https://github.com/lactua/dotfiles/tree/master/kitty)
 
 - First install [kitty](https://sw.kovidgoyal.net/kitty/binary.html) terminal
 - Install [Fira Code Font](https://github.com/tonsky/FiraCode)
@@ -222,5 +222,3 @@ The theme credits goes to [lactua](https://github.com/lactua/dotfiles/tree/maste
 | ctrl+shift+kp_subtract| change_font_size all -2.0     |
 | ctrl+shift+backspace  | change_font_size all 0        |
 | ctrl+shift+f5         | load_config_file              |
-
-## Screenshots
