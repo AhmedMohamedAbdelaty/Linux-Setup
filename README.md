@@ -14,7 +14,7 @@ My Linux Environment setup (apps, settings and optimizations)
 
 ### **Table of Contents**
 
-- [x] [My Terminal Setup](#My-Terminal-Setup) (Zsh, Oh my Zsh, and Powerlevel10k)
+- [x] [My Terminal Setup](#My-Terminal-Setup) (Zsh, Oh my Zsh, Powerlevel10k and Kitty)
 - [ ] VS Code
 - [ ] Linux Distribution configuration
 - [ ] Linux Themes
@@ -24,13 +24,13 @@ My Linux Environment setup (apps, settings and optimizations)
 
 # My Terminal Setup
 
-### This tutorial provides a comprehensive guide on how to install and configure Zsh, Oh my Zsh, and Powerlevel10k with automatic suggestions, syntax highlighting, and auto-completion.
+This tutorial provides a comprehensive guide on how to install and configure Zsh, Oh my Zsh, and Powerlevel10k with automatic suggestions, syntax highlighting, and auto-completion.
 
-### By following the step-by-step instructions, you will be able to create a personalized and efficient terminal environment for your development work.
+By following the step-by-step instructions, you will be able to create a personalized and efficient terminal environment for your development work.
 
 
 
-![](https://i.imgur.com/gfi0G54.gif[/img)
+![Screen](https://github.com/AhmedMohamedAbdelaty/Linux-Setup/assets/73834838/3fd835db-f0a3-4998-9011-4ef3f501cb73)
 
 
 
@@ -138,7 +138,8 @@ My Linux Environment setup (apps, settings and optimizations)
 
   - logout and login again
 
-- ### install [Dracula theme](https://draculatheme.com/powerlevel10k) (Optional) - (by [@satriajanaka09](https://medium.com/@satriajanaka09/setup-zsh-oh-my-zsh-powerlevel10k-on-ubuntu-20-04-c4a4052508fd))
+---
+<!-- - ### install [Dracula theme](https://draculatheme.com/powerlevel10k) (Optional) - (by [@satriajanaka09](https://medium.com/@satriajanaka09/setup-zsh-oh-my-zsh-powerlevel10k-on-ubuntu-20-04-c4a4052508fd))
 
   - Install `dconf-cli` with following command :
 
@@ -180,6 +181,46 @@ My Linux Environment setup (apps, settings and optimizations)
 
     ![img](https://miro.medium.com/v2/resize:fit:700/1*zWWNF-SO9wjzzNmsZlfZ4g.png)
 
+ -->
 
+## Kitty Terminal
+The theme credits goes to [lactua](https://github.com/lactua/dotfiles/tree/master)
 
-# 
+- First install [kitty](https://sw.kovidgoyal.net/kitty/binary.html) terminal
+- Install [Fira Code Font](https://github.com/tonsky/FiraCode)
+- Finally install the theme by running `install.sh` script.
+  - Make sure you are in the same directory as the script.
+  - Make the script executable by running
+    - ```bash
+      chmod +x install.sh
+      ```
+  - Run the script
+    - ```bash
+      ./install.sh
+      ```
+
+### Kitty Keybindings
+
+| Shortcut              | Action                        |
+|-----------------------|-------------------------------|
+| ctrl+shift+c          | copy_to_clipboard             |
+| ctrl+shift+v          | paste_from_clipboard          |
+| ctrl+shift+enter      | new_window                    |
+| ctrl+shift+w          | close_window                  |
+| ctrl+tab              | next_window                   |
+| ctrl+shift+tab        | previous_window               |
+| ctrl+shift+r          | start_resizing_window         |
+| ctrl+shift+right      | next_tab                      |
+| ctrl+shift+left       | previous_tab                  |
+| ctrl+shift+t          | new_tab                       |
+| ctrl+shift+q          | close_tab                     |
+| ctrl+shift+up         | move_tab_forward              |
+| ctrl+shift+down       | move_tab_backward             |
+| ctrl+shift+n          | set_tab_title                 |
+| ctrl+shift+l          | next_layout                   |
+| ctrl+shift+kp_add     | change_font_size all +2.0     |
+| ctrl+shift+kp_subtract| change_font_size all -2.0     |
+| ctrl+shift+backspace  | change_font_size all 0        |
+| ctrl+shift+f5         | load_config_file              |
+
+## Screenshots
