@@ -1,0 +1,81 @@
+#!/usr/bin/env bash
+
+# Source the script 'common-functions.sh'.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+ROOT_DIR=$(grep --only-matching "^.*scripts[^/]*" <<<"$SCRIPT_DIR")
+source "$ROOT_DIR/common-functions.sh"
+
+_main() {
+    local input_files=""
+
+    # Execute initial checks.
+    _check_dependencies ""
+    _display_wait_box "2"
+    input_files=$(_get_files "par_type=file; par_max_items=1; par_select_mime=text/plain")
+
+    # Allows the symbol "'" in filenames (inside 'xargs').
+    checksum_file=$(sed -z "s|'|'\\\''|g" <"$input_files")
+
+    # Export variables to be used inside new shells (when using 'xargs').
+    export TEMP_DIR_STORAGE_TEXT
+
+    # Export functions to be used inside new shells (when using 'xargs').
+    export -f \
+        _storage_text_write \
+        _storage_text_write_ln \
+        _verify_checksum
+
+    printf "%s" "$checksum_file" | xargs \
+        --no-run-if-empty \
+        --delimiter=$'\n' \
+        --max-procs="$(_get_max_procs)" \
+        --replace="{}" \
+        bash -c "_verify_checksum '{}'"
+
+    local std_output=""
+    std_output=$(_storage_text_read_all)
+    std_output=$(_text_sort "$std_output")
+
+    if [[ -z "$std_output" ]]; then
+        std_output="No errors found."
+    fi
+
+    _display_text_box "$std_output"
+}
+
+_verify_checksum() {
+    local line=$1
+    local saved_checksum=""
+    local saved_file=""
+    local current_output=""
+    local current_checksum=""
+
+    saved_checksum=$(printf "%s" "$line" | cut -d " " -f1)
+    saved_file=$(printf "%s" "$line" | cut -d " " -f3-)
+
+    # Replace % to %% with the 'printf' command.
+    saved_file=${saved_file//%/%%}
+
+    # Some checksums start with '\', for filenames with '\n' or '\'.
+    # shellcheck disable=SC2059
+    saved_file_decoded=$(printf "$saved_file")
+
+    # If the file does not exist, report and skip the check.
+    if [[ ! -e "$saved_file_decoded" ]]; then
+        _storage_text_write_ln "[ERROR] No such file: $saved_file"
+        return 1
+    fi
+
+    current_output=$(sha1sum -- "$saved_file_decoded" 2>/dev/null)
+    current_checksum=$(printf "%s" "$current_output" | cut -d " " -f1)
+
+    # Compare the checksum.
+    if [[ "$saved_checksum" != "$current_checksum" ]]; then
+        _storage_text_write_ln "[ERROR] Mismatch checksum for the file: $saved_file. Saved: $saved_checksum. Current: $current_checksum."
+        return 1
+    fi
+
+    return 0
+}
+
+_main "$@"

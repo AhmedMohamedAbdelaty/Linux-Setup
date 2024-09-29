@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2001
+# install_keyboard_shortcut=<Control><Alt>5
+
+# Source the script 'common-functions.sh'.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+ROOT_DIR=$(grep --only-matching "^.*scripts[^/]*" <<<"$SCRIPT_DIR")
+source "$ROOT_DIR/common-functions.sh"
+
+_main() {
+    local input_files=""
+    local output_dir=""
+
+    # Execute initial checks.
+    _check_dependencies ""
+    _display_wait_box "2"
+    input_files=$(_get_files "par_type=file; par_recursive=true; par_get_pwd=true; par_select_mime='text/|application/json'")
+
+    # Execute the function '_main_task' for each file in parallel.
+    _run_task_parallel "$input_files" "$output_dir"
+
+    local std_output=""
+    std_output=$(_storage_text_read_all)
+    std_output=$(_text_sort "$std_output")
+
+    _display_list_box "$std_output" "--column=Endings;--column=File"
+}
+
+_main_task() {
+    local input_file=$1
+    local output_dir=$2
+    local std_output=""
+
+    # Run the main process.
+    std_output=$(file --dereference --separator "$FIELD_SEPARATOR" --no-pad -- "$input_file")
+    std_output=$(_text_remove_pwd "$std_output")
+    std_output=$(sed "s|$FIELD_SEPARATOR.*with CRLF, CR, LF line.*|$FIELD_SEPARATOR CRLF+CR+LF (windows)|" <<<"$std_output")
+    std_output=$(sed "s|$FIELD_SEPARATOR.*with CRLF, LF line.*|$FIELD_SEPARATOR CRLF+LF (windows)|" <<<"$std_output")
+    std_output=$(sed "s|$FIELD_SEPARATOR.*with CRLF, CR line.*|$FIELD_SEPARATOR CRLF+CR (windows)|" <<<"$std_output")
+    std_output=$(sed "s|$FIELD_SEPARATOR.*with CRLF line.*|$FIELD_SEPARATOR CRLF (windows)|" <<<"$std_output")
+    std_output=$(sed "s|$FIELD_SEPARATOR.*with CR line.*|$FIELD_SEPARATOR CR (mac)|" <<<"$std_output")
+    std_output=$(sed "s|$FIELD_SEPARATOR.*with CR, LF line.*|$FIELD_SEPARATOR CR+LF (mac)|" <<<"$std_output")
+    std_output=$(sed "s|$FIELD_SEPARATOR.*no line.*|$FIELD_SEPARATOR (no line)|" <<<"$std_output")
+    std_output=$(sed "s|$FIELD_SEPARATOR.*text.*|$FIELD_SEPARATOR LF (unix)|" <<<"$std_output")
+    std_output=$(sed "s|\(.*\)$FIELD_SEPARATOR\s*\(.*\)|\2$FIELD_SEPARATOR\1|" <<<"$std_output")
+    std_output=$(grep "(windows)\|(unix)\|(mac)\|(no line)" <<<"$std_output")
+
+    _storage_text_write_ln "$std_output"
+}
+
+_main "$@"

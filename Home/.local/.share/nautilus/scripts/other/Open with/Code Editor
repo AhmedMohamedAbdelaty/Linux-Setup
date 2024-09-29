@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2086
+# install_keyboard_shortcut=F3
+
+# Source the script 'common-functions.sh'.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+ROOT_DIR=$(grep --only-matching "^.*scripts[^/]*" <<<"$SCRIPT_DIR")
+source "$ROOT_DIR/common-functions.sh"
+
+_main() {
+    local input_files=""
+
+    # Execute initial checks.
+    _check_dependencies ""
+    input_files=$(_get_files "par_type=all; par_max_items=20; par_get_pwd=true")
+    _unset_global_variables_file_manager
+
+    # Check if the first file is a binary file.
+    local file_1=""
+    file_1=$(cut -d "$FIELD_SEPARATOR" -f 1 <<<"$input_files")
+    if ! [[ -d "$file_1" ]]; then
+        if [[ "$(_get_file_encoding "$file_1")" == "binary" ]] && [[ -s "$file_1" ]]; then
+            case "${XDG_CURRENT_DESKTOP,,}" in
+            *"kde"* | *"lxqt"*)
+                _check_dependencies "command=okteta"
+                okteta -- $input_files &
+                ;;
+            *)
+                _check_dependencies "command=ghex"
+                ghex -- $input_files &
+                ;;
+            esac
+            exit 0
+        fi
+    fi
+
+    # Run the main process.
+    if _command_exists "code"; then
+        code -- $input_files &
+    elif _command_exists "geany"; then
+        geany -- $input_files &
+    else
+        _check_dependencies "command=xdg-open; package=xdg-utils"
+        $(_xdg_get_default_app "text/plain") -- $input_files &
+    fi
+}
+
+_main "$@"

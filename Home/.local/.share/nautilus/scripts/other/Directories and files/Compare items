@@ -1,0 +1,233 @@
+#!/usr/bin/env bash
+# install_keyboard_shortcut=<Control><Shift>C
+
+# Source the script 'common-functions.sh'.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+ROOT_DIR=$(grep --only-matching "^.*scripts[^/]*" <<<"$SCRIPT_DIR")
+source "$ROOT_DIR/common-functions.sh"
+
+_main() {
+    local input_files=""
+
+    # Execute initial checks.
+    _check_dependencies ""
+    input_files=$(_get_files "par_type=all; par_min_items=2; par_max_items=3; par_sort_list=true")
+
+    # Run the main process.
+    _compare "$input_files"
+}
+
+_compare() {
+    local input_files=$1
+
+    local file_1=""
+    local file_2=""
+    local file_3=""
+    file_1=$(cut -d "$FIELD_SEPARATOR" -f 1 <<<"$input_files")
+    file_2=$(cut -d "$FIELD_SEPARATOR" -f 2 <<<"$input_files")
+    file_3=$(cut -d "$FIELD_SEPARATOR" -f 3 <<<"$input_files")
+
+    # Check if the items (directories or files) are identical.
+    local diff_1_2=""
+    local diff_1_3=""
+    diff_1_2=$(diff --brief --recursive -- "$file_1" "$file_2" 2>&1)
+    if [[ -z "$file_3" ]]; then
+        if [[ -z "$diff_1_2" ]]; then
+            _display_info_box "The two selected items are identical."
+            _exit_script
+        fi
+    else
+        diff_1_3=$(diff --brief --recursive -- "$file_1" "$file_3" 2>&1)
+        if [[ -z "$diff_1_2" ]] && [[ -z "$diff_1_3" ]]; then
+            _display_info_box "The three selected items are identical."
+            _exit_script
+        fi
+    fi
+
+    # Define the command to execute according to file MIME type.
+    local command=""
+    local file_1_mime=""
+    file_1_mime=$(_get_file_mime "$file_1")
+    case $file_1_mime in
+    "application/pdf") command="diffpdf" ;;
+    "inode/directory") command="meld" ;;
+    "inode/x-empty") command="meld" ;;
+    "image/"*) command="compare" ;;
+    "text/"*) command="meld" ;;
+    *)
+        local file_1_encoding=""
+        file_1_encoding=$(_get_file_encoding "$file_1")
+        if [[ "$file_1_encoding" == "binary" ]]; then
+            command="meld_hexadecimal"
+        else
+            command="meld"
+        fi
+        ;;
+    esac
+
+    if [[ "$command" == "meld"* ]]; then
+        case "${XDG_CURRENT_DESKTOP,,}" in
+        *"kde"* | *"lxqt"*)
+            command=${command//meld/kdiff3}
+            ;;
+        esac
+    fi
+
+    # Check dependencies for the command.
+    local dependencies=""
+    case $command in
+    "compare") dependencies="
+        command=compare; pkg_manager=apt; package=imagemagick |
+        command=compare; pkg_manager=dnf; package=ImageMagick |
+        command=compare; pkg_manager=pacman; package=imagemagick |
+        command=compare; pkg_manager=zypper; package=ImageMagick |
+        command=xdg-open; package=xdg-utils" ;;
+    "diffpdf") dependencies="command=diffpdf" ;;
+    "kdiff3") dependencies="command=kdiff3" ;;
+    "kdiff3_hexadecimal") dependencies="command=kdiff3 | command=xxd" ;;
+    "meld") dependencies="command=meld" ;;
+    "meld_hexadecimal") dependencies="command=meld | command=xxd" ;;
+    esac
+    _check_dependencies "$dependencies"
+
+    # Run the main process.
+    case $command in
+    "compare")
+        if [[ -n "$file_3" ]]; then
+            _display_error_box "You must select only two image files to compare!"
+            _exit_script
+        fi
+
+        # Check if both images have the same pixel values.
+        local pixel_error=""
+        pixel_error=$(compare -metric AE -- "$file_1" "$file_2" null: 2>&1)
+        if [[ "$pixel_error" == "0" ]]; then
+            _display_info_box "The two selected images are identical (same pixel values)."
+            _exit_script
+        fi
+
+        # Get image dimensions.
+        local dimensions_1=""
+        local dimensions_2=""
+        dimensions_1=$(identify -format "%wx%h" "$file_1")
+        dimensions_2=$(identify -format "%wx%h" "$file_2")
+
+        # Compare two images using a visual diff with the 'convert' command.
+        local temp_file=""
+        temp_file="$(_get_temp_file_dry).png"
+        if [[ "$dimensions_1" == "$dimensions_2" ]]; then
+            # Compare images with the same dimensions.
+            convert \
+                '(' "$file_1" -flatten -grayscale Rec709Luminance ')' \
+                '(' "$file_2" -flatten -grayscale Rec709Luminance ')' \
+                '(' -clone 0-1 -compose darken -composite ')' \
+                -channel RGB -combine "$temp_file"
+        else
+            # Compare images with different dimensions.
+            compare "$file_1" "$file_2" -compose src "$temp_file"
+        fi
+
+        $(_xdg_get_default_app "image/png") -- "$temp_file"
+
+        ;;
+    "diffpdf")
+        if [[ -n "$file_3" ]]; then
+            _display_error_box "You must select only two PDFs to compare!"
+            _exit_script
+        fi
+
+        diffpdf -- "$file_1" "$file_2" &
+        ;;
+    "meld" | "kdiff3")
+        if [[ -z "$file_3" ]]; then
+            $command -- "$file_1" "$file_2" &
+        else
+            $command -- "$file_1" "$file_2" "$file_3" &
+        fi
+        ;;
+    "meld_hexadecimal" | "kdiff3_hexadecimal")
+        if [[ -n "$file_3" ]]; then
+            _display_error_box "You must select only two files to hexadecimal compare!"
+            _exit_script
+        fi
+
+        # Remove the prefix '_hexadecimal'.
+        command=${command//_hexadecimal/}
+
+        # Get the file sizes.
+        local file_1_size=""
+        local file_2_size=""
+        local size_difference=0
+        file_1_size=$(_get_file_size "$file_1")
+        file_2_size=$(_get_file_size "$file_2")
+        size_difference=$(_get_difference "$file_1_size" "$file_2_size")
+
+        # If the files have different sizes,
+        # compute a column width for better comparison.
+        local cols=24
+        if ((size_difference != 0)); then
+            cols=$(_get_ideal_cols "$size_difference")
+        fi
+
+        # Convert files to hexadecimal text view.
+        local file_1_hex=""
+        local file_2_hex=""
+        file_1_hex="$TEMP_DIR_TASK/$(basename -- "$file_1")"
+        file_2_hex="$TEMP_DIR_TASK/$(basename -- "$file_2")"
+        xxd -c "$cols" "$file_1" "$file_1_hex"
+        xxd -c "$cols" "$file_2" "$file_2_hex"
+
+        # Remove the addresses for better comparison.
+        sed -i "s|^[^:]*: ||g" "$file_1_hex"
+        sed -i "s|^[^:]*: ||g" "$file_2_hex"
+
+        # Compare and edit the files.
+        $command -- "$file_1_hex" "$file_2_hex"
+
+        # Convert to plain hexadecimal dump.
+        sed -i "s|  .*||g; s| ||g" "$file_1_hex"
+        sed -i "s|  .*||g; s| ||g" "$file_2_hex"
+
+        # Save the files after possible modifications.
+        local file_1_modified="$file_1_hex.bin"
+        local file_2_modified="$file_2_hex.bin"
+        xxd -revert -plain "$file_1_hex" "$file_1_modified"
+        xxd -revert -plain "$file_2_hex" "$file_2_modified"
+        _move_temp_file_to_output "$file_1" "$file_1_modified" "$file_1"
+        _move_temp_file_to_output "$file_2" "$file_2_modified" "$file_2"
+        ;;
+    esac
+}
+
+_get_ideal_cols() {
+    local size_difference=$1
+    local cols=24
+
+    local i=0
+    for ((i = 23; i >= 5; i--)); do
+        if ((size_difference % i == 0)); then
+            cols=$i
+            break
+        fi
+    done
+
+    printf "%s" "$cols"
+}
+
+_get_difference() {
+    local num_1=$1
+    local num_2=$2
+
+    # Calculate the positive difference.
+    if ((num_1 > num_2)); then
+        printf "%s" "$((num_1 - num_2))"
+    else
+        printf "%s" "$((num_2 - num_1))"
+    fi
+}
+
+_get_file_size() {
+    stat --format="%s" "$1" 2>/dev/null
+}
+
+_main "$@"

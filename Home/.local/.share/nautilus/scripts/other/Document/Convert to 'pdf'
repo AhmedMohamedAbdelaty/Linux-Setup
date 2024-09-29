@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+
+# Source the script 'common-functions.sh'.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+ROOT_DIR=$(grep --only-matching "^.*scripts[^/]*" <<<"$SCRIPT_DIR")
+source "$ROOT_DIR/common-functions.sh"
+
+_main() {
+    local input_files=""
+    local output_dir=""
+
+    # Execute initial checks.
+    _check_dependencies ""
+    input_files=$(_get_files "par_type=file; par_validate_conflict=true")
+
+    local dependencies=""
+    dependencies=$(_get_dependencies "$input_files")
+    _check_dependencies "$dependencies"
+    _display_wait_box "2"
+    output_dir=$(_get_output_dir "par_use_same_dir=true")
+
+    export -f _get_command _run_command
+
+    # Execute the function '_main_task' for each file in parallel.
+    _run_task_parallel "$input_files" "$output_dir"
+    _display_result_box "$output_dir"
+}
+
+_main_task() {
+    local input_file=$1
+    local output_dir=$2
+    local output_file=""
+
+    # Run the main process.
+    local command=""
+    command=$(_get_command "$input_file")
+    _run_command "$input_file" "$command" "$output_dir"
+}
+
+_get_dependencies() {
+    local input_files=$1
+    local dependencies=""
+
+    # Check dependencies for each file.
+    for input_file in $input_files; do
+        local command=""
+        command=$(_get_command "$input_file")
+
+        case $command in
+        "convert")
+            dependencies+="
+                command=convert; pkg_manager=apt; package=imagemagick |
+                command=convert; pkg_manager=dnf; package=ImageMagick |
+                command=convert; pkg_manager=pacman; package=imagemagick |
+                command=convert; pkg_manager=zypper; package=ImageMagick"
+            ;;
+        "inkscape") dependencies+="command=inkscape" ;;
+        "latexmk")
+            dependencies+="
+                command=latexmk |
+                pkg_manager=apt; package=texlive |
+                pkg_manager=apt; package=texlive-fonts-extra |
+                pkg_manager=apt; package=texlive-latex-extra |
+                pkg_manager=apt; package=texlive-publishers |
+                pkg_manager=apt; package=texlive-science |
+                pkg_manager=apt; package=texlive-xetex |
+                pkg_manager=dnf; package=texlive-scheme-basic |
+                pkg_manager=dnf; package=texlive-mdwtools |
+                pkg_manager=pacman; package=texlive-basic |
+                pkg_manager=pacman; package=texlive-binextra |
+                pkg_manager=pacman; package=texlive-fontsextra |
+                pkg_manager=pacman; package=texlive-latex |
+                pkg_manager=pacman; package=texlive-latexextra |
+                pkg_manager=pacman; package=texlive-mathscience |
+                pkg_manager=pacman; package=texlive-publishers |
+                pkg_manager=pacman; package=texlive-xetex |
+                pkg_manager=zypper; package=texlive |
+                pkg_manager=zypper; package=texlive-mathdesign |
+                pkg_manager=zypper; package=texlive-subeqnarray"
+            ;;
+        "libreoffice_calc")
+            if ! _command_exists "libreoffice.calc" && ! _command_exists "libreoffice-calc"; then
+                dependencies+="package=libreoffice-calc"
+            fi
+            ;;
+        "libreoffice_impress")
+            if ! _command_exists "libreoffice.impress" && ! _command_exists "libreoffice-impress"; then
+                dependencies+="package=libreoffice-impress"
+            fi
+            ;;
+        "libreoffice_writer")
+            if ! _command_exists "libreoffice.writer" && ! _command_exists "libreoffice-writer"; then
+                dependencies+="package=libreoffice-writer"
+            fi
+            ;;
+        "pandoc_latex")
+            dependencies+="
+                command=pandoc |
+                pkg_manager=apt; package=texlive |
+                pkg_manager=apt; package=texlive-fonts-extra |
+                pkg_manager=apt; package=texlive-latex-extra |
+                pkg_manager=apt; package=texlive-publishers |
+                pkg_manager=apt; package=texlive-science |
+                pkg_manager=apt; package=texlive-xetex |
+                pkg_manager=dnf; package=texlive-scheme-basic |
+                pkg_manager=dnf; package=texlive-mdwtools |
+                pkg_manager=pacman; package=texlive-basic |
+                pkg_manager=pacman; package=texlive-binextra |
+                pkg_manager=pacman; package=texlive-fontsextra |
+                pkg_manager=pacman; package=texlive-latex |
+                pkg_manager=pacman; package=texlive-latexextra |
+                pkg_manager=pacman; package=texlive-mathscience |
+                pkg_manager=pacman; package=texlive-publishers |
+                pkg_manager=pacman; package=texlive-xetex |
+                pkg_manager=zypper; package=texlive |
+                pkg_manager=zypper; package=texlive-mathdesign |
+                pkg_manager=zypper; package=texlive-subeqnarray"
+            ;;
+        "pandoc") dependencies+="command=pandoc" ;;
+        esac
+        dependencies+=$'\n'
+    done
+
+    printf "%s" "$dependencies"
+}
+
+_get_command() {
+    local input_file=$1
+    local command=""
+
+    case "${input_file,,}" in
+    *.bmp | *.gif | *.jpeg | *.jpg | *.png | *.tif | *.tiff | *.webp) command="convert" ;;
+    *.doc | *.docx) command="libreoffice_writer" ;;
+    *.htm | *.html) command="libreoffice_writer" ;;
+    *.md | *.markdown) command="pandoc_latex" ;;
+    *.odf | *.fodf) command="libreoffice_writer" ;;
+    *.odg | *.fodg) command="libreoffice_impress" ;;
+    *.odp | *.fodp) command="libreoffice_impress" ;;
+    *.ods | *.fods) command="libreoffice_calc" ;;
+    *.odt | *.fodt) command="libreoffice_writer" ;;
+    *.ppt | *.pptx) command="libreoffice_impress" ;;
+    *.rtf) command="libreoffice_writer" ;;
+    *.svg | *.svgz) command="inkscape" ;;
+    *.tex) command="latexmk" ;;
+    *.txt) command="pandoc_latex" ;;
+    *.xls | *.xlsx) command="libreoffice_calc" ;;
+    *) command="pandoc" ;;
+    esac
+
+    printf "%s" "$command"
+}
+
+_run_command() {
+    local input_file=$1
+    local command=$2
+    local output_dir=$3
+    local output_format="pdf"
+
+    output_file=$(_get_output_filename "$input_file" "$output_dir" "par_extension_opt=replace; par_extension=$output_format")
+
+    # Run the main process.
+    case $command in
+    "convert")
+        std_output=$(convert "$input_file" "$output_file" 2>&1)
+        _check_output "$?" "$std_output" "$input_file" "$output_file" || return 1
+        ;;
+    "inkscape")
+        local inkscape_version=""
+        local inkscape_version_old="1.0"
+        inkscape_version=$(inkscape --version | cut -d " " -f 2)
+        if [[ "$inkscape_version" == $(echo -e "$inkscape_version\n$inkscape_version_old" | sort -V | head -n1) ]]; then
+            # Old Inkscape version.
+            std_output=$(inkscape --without-gui --export-area-drawing --file="$input_file" --export-pdf="$output_file" 2>&1)
+        else
+            # New Inkscape version.
+            std_output=$(inkscape --export-area-drawing --export-filename="$output_file" -- "$input_file" 2>&1)
+        fi
+        _check_output "$?" "$std_output" "$input_file" "$output_file" || return 1
+        ;;
+    "latexmk")
+        # Use a local temporary directory to work.
+        local filename=""
+        local temp_dir_output=""
+        filename=$(basename -- "$input_file")             # Remove the path.
+        filename=$(_strip_filename_extension "$filename") # Remove the extension.
+        temp_dir_output=$(_get_temp_dir_local "$output_dir" "$filename")
+
+        output_file_temp=$(_get_output_filename "$input_file" "$temp_dir_output" "par_extension_opt=replace; par_extension=$output_format")
+
+        std_output=$(latexmk -f -pdf -interaction=nonstopmode -output-directory="$temp_dir_output" "$input_file" 2>&1)
+        _check_output "$?" "$std_output" "$input_file" "$output_file_temp"
+
+        std_output=$(_move_file "rename" "$output_file_temp" "$output_file" 2>&1)
+        _check_output "$?" "$std_output" "$input_file" ""
+
+        # Remove the temporary directory.
+        rm -rf -- "$temp_dir_output"
+        ;;
+    "libreoffice_calc" | "libreoffice_impress" | "libreoffice_writer")
+        # NOTE: Workaround to fix the bug 37531 in LibreOffice.
+        # See the: https://bugs.documentfoundation.org/show_bug.cgi?id=37531
+        local temp_file=""
+        temp_file=$(_get_temp_file_dry)
+
+        # NOTE: LibreOffice does not support ' -- ' in the command line.
+        # NOTE: LibreOffice does not support defining the output file manually.
+        std_output=$(libreoffice --headless --convert-to "$output_format" "-env:UserInstallation=file://$temp_file" --outdir "$output_dir" "$input_file" 2>&1)
+        _check_output "$?" "$std_output" "$input_file" ""
+
+        # Remove the temporary file.
+        rm -f -- "$temp_file"
+        ;;
+    "pandoc_latex")
+        std_output=$(pandoc -V "geometry:margin=1.5cm" -V "geometry:a4paper" -V "fontfamily:charter" --standalone -o "$output_file" -- "$input_file" 2>&1)
+        _check_output "$?" "$std_output" "$input_file" "$output_file"
+        ;;
+    "pandoc")
+        std_output=$(pandoc --standalone -o "$output_file" -- "$input_file" 2>&1)
+        _check_output "$?" "$std_output" "$input_file" "$output_file"
+        ;;
+    esac
+}
+
+_main "$@"

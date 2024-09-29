@@ -1,0 +1,29 @@
+# .zsh_plugins.txt
+
+rupa/z              # some bash plugins work too
+sindresorhus/pure   # enhance your prompt
+
+# you can even use Oh My Zsh plugins
+getantidote/use-omz
+ohmyzsh/ohmyzsh path:lib
+ohmyzsh/ohmyzsh path:plugins/extract
+ohmyzsh/ohmyzsh path:plugins/git   # Add Git plugin
+ohmyzsh/ohmyzsh path:plugins/docker   # Add docker
+
+# add fish-like features
+marlonrichert/zsh-autocomplete
+zsh-users/zsh-syntax-highlighting
+
+#zdharma-continuum/fast-syntax-highlighting kind:defer
+# Add F-Sy-H from the correct path
+zdharma/fast-syntax-highlighting path:F-Sy-H.plugin.zsh  # F-Sy-H (Fast Syntax Highlighting)
+
+zsh-users/zsh-autosuggestions kind:defer
+zsh-users/zsh-history-substring-search kind:defer
+
+# set up Zsh completions with plugins
+mattmc3/ez-compinit
+zsh-users/zsh-completions kind:fpath path:src
+
+mattmc3/zfunctions
+

@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# Source the script 'common-functions.sh'.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+ROOT_DIR=$(grep --only-matching "^.*scripts[^/]*" <<<"$SCRIPT_DIR")
+source "$ROOT_DIR/common-functions.sh"
+
+_main() {
+    local input_files=""
+    local output_dir=""
+
+    # Execute initial checks.
+    _check_dependencies "
+        command=gpg; pkg_manager=apt; package=gpg |
+        command=gpg; pkg_manager=dnf; package=gnupg2 |
+        command=gpg; pkg_manager=pacman; package=gnupg |
+        command=gpg; pkg_manager=zypper; package=gpg2"
+    _display_wait_box "2"
+    input_files=$(_get_files "par_type=file; par_select_mime='application/octet-stream|application/pgp-keys|text/plain'")
+
+    # Execute the function '_main_task' for each file in parallel.
+    _run_task_parallel "$input_files" "$output_dir"
+    _display_result_box ""
+}
+
+_main_task() {
+    local input_file=$1
+    local output_dir=$2
+    local std_output=""
+    local key_id=""
+
+    # Get the ID from the key.
+    key_id=$(gpg --with-colons --import-options show-only --import "$input_file" | grep "^fpr" | head -1 | cut -d ':' -f 10 2>/dev/null)
+
+    # Import the key.
+    std_output=$(gpg --batch --yes --import "$input_file" 2>&1)
+    _check_output "$?" "$std_output" "$input_file" "" || return 1
+
+    # Set the trust level to 'ultimate'.
+    std_output=$(printf "%s\n" "$key_id:6:" | gpg --batch --yes --import-ownertrust 2>&1)
+    _check_output "$?" "$std_output" "$input_file" "" || return 1
+}
+
+_main "$@"

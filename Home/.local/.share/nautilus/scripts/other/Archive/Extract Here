@@ -1,0 +1,463 @@
+#!/usr/bin/env bash
+# install_keyboard_shortcut=<Control>E
+
+# Source the script 'common-functions.sh'.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+ROOT_DIR=$(grep --only-matching "^.*scripts[^/]*" <<<"$SCRIPT_DIR")
+source "$ROOT_DIR/common-functions.sh"
+
+_main() {
+    local input_files=""
+    local output_dir=""
+
+    # Execute initial checks.
+    _check_dependencies ""
+    input_files=$(_get_files "par_type=file")
+
+    local dependencies=""
+    dependencies=$(_get_dependencies "$input_files")
+    _check_dependencies "$dependencies"
+    _display_wait_box "0"
+
+    export -f \
+        _all_commands_exists \
+        _get_command \
+        _run_command
+
+    # Execute the function '_main_task' for each file in parallel.
+    _run_task_parallel "$input_files" "$output_dir"
+    _display_result_box ""
+}
+
+_main_task() {
+    local input_file=$1
+    local output_dir=$2
+
+    # Run the main process.
+    local command=""
+    command=$(_get_command "$input_file" "available")
+    _run_command "$input_file" "$command" "$output_dir"
+}
+
+_get_dependencies() {
+    local input_files=$1
+    local dependencies=""
+
+    # Check dependencies for each file.
+    for input_file in $input_files; do
+        local command=""
+        command=$(_get_command "$input_file" "available")
+
+        # If there is an available command, skip the dependency.
+        if [[ -n "$command" ]]; then
+            continue
+        fi
+
+        command=$(_get_command "$input_file" "default")
+
+        case $command in
+        "7za")
+            dependencies+="
+            command=7za; pkg_manager=apt; package=p7zip-full |
+            command=7za; pkg_manager=dnf; package=p7zip |
+            command=7za; pkg_manager=pacman; package=p7zip |
+            command=7za; pkg_manager=zypper; package=p7zip"
+            ;;
+        "ar") dependencies+="command=ar; package=binutils" ;;
+        "bsdtar")
+            dependencies+="
+                command=bsdtar; pkg_manager=apt; package=libarchive-tools |
+                command=bsdtar; pkg_manager=dnf |
+                command=bsdtar; pkg_manager=pacman; package=libarchive |
+                command=bsdtar; pkg_manager=zypper"
+            ;;
+        "bsdtar+unar+7za")
+            dependencies+="
+                command=bsdtar; pkg_manager=apt; package=libarchive-tools |
+                command=bsdtar; pkg_manager=dnf |
+                command=bsdtar; pkg_manager=pacman; package=libarchive |
+                command=bsdtar; pkg_manager=zypper"
+            dependencies+=$'\n'
+            dependencies+="
+                command=unar; pkg_manager=apt |
+                command=unar; pkg_manager=dnf |
+                command=unar; pkg_manager=pacman; package=unarchiver |
+                command=unar; pkg_manager=zypper"
+            dependencies+=$'\n'
+            dependencies+="
+                command=7za; pkg_manager=apt; package=p7zip-full |
+                command=7za; pkg_manager=dnf; package=p7zip |
+                command=7za; pkg_manager=pacman; package=p7zip |
+                command=7za; pkg_manager=zypper; package=p7zip"
+            ;;
+        "bzip2") dependencies+="command=bzip2" ;;
+        "cpio") dependencies+="command=cpio" ;;
+        "gpg")
+            dependencies+="
+                command=gpg; pkg_manager=apt; package=gpg |
+                command=gpg; pkg_manager=dnf; package=gnupg2 |
+                command=gpg; pkg_manager=pacman; package=gnupg |
+                command=gpg; pkg_manager=zypper; package=gpg2"
+            ;;
+        "gzip") dependencies+="command=gzip" ;;
+        "lha") dependencies+="command=lha; package=lhasa" ;;
+        "lrzip") dependencies+="command=lrzip" ;;
+        "lz4") dependencies+="command=lz4" ;;
+        "lzip") dependencies+="command=lzip" ;;
+        "lzop") dependencies+="command=lzop" ;;
+        "tar") dependencies+="command=tar" ;;
+        "tar+bzip2") dependencies+="command=tar | command=bzip2" ;;
+        "tar+gzip") dependencies+="command=tar | command=gzip" ;;
+        "tar+lrzip") dependencies+="command=lrztar; package=lrzip" ;;
+        "tar+lz4") dependencies+="command=tar | command=lz4" ;;
+        "tar+lzip") dependencies+="command=tar | command=lzip" ;;
+        "tar+lzop") dependencies+="command=tar | command=lzop" ;;
+        "tar+xz")
+            dependencies+="
+                command=tar |
+                command=xz; pkg_manager=apt; package=xz-utils |
+                command=xz; pkg_manager=dnf |
+                command=xz; pkg_manager=pacman |
+                command=xz; pkg_manager=zypper"
+            ;;
+        "tar+zstd") dependencies+="command=tar | command=zstd" ;;
+        "unar")
+            dependencies+="
+                command=unar; pkg_manager=apt |
+                command=unar; pkg_manager=dnf |
+                command=unar; pkg_manager=pacman; package=unarchiver |
+                command=unar; pkg_manager=zypper"
+            ;;
+        "unrar") dependencies+="command=unrar" ;;
+        "unsquashfs")
+            dependencies+="
+            command=unsquashfs; pkg_manager=apt; package=squashfs-tools |
+            command=unsquashfs; pkg_manager=dnf; package=squashfs-tools |
+            command=unsquashfs; pkg_manager=pacman; package=squashfs-tools |
+            command=unsquashfs; pkg_manager=zypper; package=squashfs"
+            ;;
+        "unzip") dependencies+="command=unzip" ;;
+        "xorriso") dependencies+="command=xorriso" ;;
+        "xz")
+            dependencies+="
+                command=xz; pkg_manager=apt; package=xz-utils |
+                command=xz; pkg_manager=dnf |
+                command=xz; pkg_manager=pacman |
+                command=xz; pkg_manager=zypper"
+            ;;
+        "zpaq") dependencies+="command=zpaq" ;;
+        "zstd") dependencies+="command=zstd" ;;
+        esac
+        dependencies+=$'\n'
+    done
+
+    printf "%s" "$dependencies"
+}
+
+_get_command() {
+    local input_file=$1
+    local command_status=$2
+    local preferred_commands=""
+    local command=""
+
+    # Define the preferred commands for each archive format.
+    case "${input_file,,}" in
+    *.tar.bz | *.tbz | *.tar.bz2 | *.tbz2 | *.tb2) preferred_commands="tar+bzip2 unar 7za" ;;
+    *.tar.gz | *.tgz) preferred_commands="tar+gzip unar 7za" ;;
+    *.tar.lrz | *.tlrz) preferred_commands="tar+lrzip" ;;
+    *.tar.lz) preferred_commands="tar+lzip" ;;
+    *.tar.lz4) preferred_commands="tar+lz4" ;;
+    *.tar.lzma | *.tlz) preferred_commands="tar+lzma unar 7za" ;;
+    *.tar.lzo | *.tzo) preferred_commands="tar+lzop" ;;
+    *.tar.xz | *.txz) preferred_commands="tar+xz unar 7za" ;;
+    *.tar.z | *.taz) preferred_commands="tar+gzip unar 7za" ;;
+    *.tar.zst | *.tzst) preferred_commands="tar+zstd" ;;
+    *.7z) preferred_commands="7za unar bsdtar" ;;
+    *.ace) preferred_commands="unar" ;;
+    *.alz) preferred_commands="unar" ;;
+    *.ar) preferred_commands="ar bsdtar" ;;
+    *.arc) preferred_commands="unar" ;;
+    *.arj) preferred_commands="unar" ;;
+    *.bz | *.bz2) preferred_commands="bzip2 unar 7za" ;;
+    *.cab) preferred_commands="unar" ;;
+    *.cpio) preferred_commands="cpio unar bsdtar" ;;
+    *.deb | *.udeb) preferred_commands="ar" ;;
+    *.gpg | *.asc | *.pgp) preferred_commands="gpg" ;;
+    *.gz) preferred_commands="gzip unar 7za" ;;
+    *.iso) preferred_commands="xorriso bsdtar" ;;
+    *.lrz) preferred_commands="lrzip" ;;
+    *.lz) preferred_commands="lzip" ;;
+    *.lz4) preferred_commands="lz4" ;;
+    *.lzh | *.lzs | *.lha) preferred_commands="lha unar" ;;
+    *.lzma) preferred_commands="xz unar" ;;
+    *.lzo) preferred_commands="lzop" ;;
+    *.msi) preferred_commands="unar" ;;
+    *.pak) preferred_commands="unar" ;;
+    *.rar) preferred_commands="unrar unar bsdtar" ;;
+    *.sit) preferred_commands="unar" ;;
+    *.sqsh | *.squashfs | *.sfs) preferred_commands="unsquashfs" ;;
+    *.tar | *.gtar | *.gem) preferred_commands="tar bsdtar unar 7za" ;;
+    *.xar) preferred_commands="unar bsdtar" ;;
+    *.xz) preferred_commands="xz unar 7za" ;;
+    *.z) preferred_commands="gzip unar" ;;
+    *.zip) preferred_commands="7za bsdtar unar unzip" ;;
+    *.zoo) preferred_commands="unar" ;;
+    *.zpaq) preferred_commands="zpaq" ;;
+    *.zst) preferred_commands="zstd" ;;
+    *) preferred_commands="bsdtar+unar+7za" ;;
+    esac
+
+    local preferred_commands_array=()
+    IFS=" " read -r -a preferred_commands_array <<<"$preferred_commands"
+
+    if [[ "$command_status" == "default" ]]; then
+        # The default command is the first command of preferred commands.
+        command=${preferred_commands_array[0]}
+    elif [[ "$command_status" == "available" ]]; then
+        # Get the available command in the system.
+        local preferred_command=""
+        for preferred_command in "${preferred_commands_array[@]}"; do
+            if [[ "$preferred_command" == *"+"* ]]; then
+                if _all_commands_exists "${preferred_command//+/ }"; then
+                    command=$preferred_command
+                    break
+                fi
+            elif _command_exists "$preferred_command"; then
+                command=$preferred_command
+                break
+            fi
+        done
+    fi
+
+    printf "%s" "$command"
+}
+
+_run_command() {
+    local input_file=$1
+    local command=$2
+    local output_dir=$3
+    local exit_code=0
+    local filename=""
+    local std_output=""
+
+    if [[ -z "$output_dir" ]]; then
+        output_dir=$(dirname -- "$input_file")
+    fi
+
+    # Try to use the command '7z' instead of '7za'.
+    local command_7za="7za"
+    if [[ "$command" == *"7za"* ]]; then
+        _command_exists "7z" && command_7za="7z"
+    fi
+
+    filename=$(basename -- "$input_file")             # Remove the path.
+    filename=$(_strip_filename_extension "$filename") # Remove the extension.
+
+    __temp_dir_cd() {
+        temp_dir_output=$(_get_temp_dir_local "$output_dir" "$filename")
+        pushd "$temp_dir_output" &>/dev/null || true
+    }
+    __temp_dir_exit() {
+        # Exit the temporary directory.
+        popd &>/dev/null || true
+    }
+    __temp_dir_remove() {
+        rm -rf -- "$temp_dir_output" &>/dev/null
+    }
+    __get_password() {
+        _display_password_box "Enter the password for the archive '$(basename -- "$input_file")'.\nPassword:"
+    }
+
+    # Use a local temporary directory to work.
+    __temp_dir_cd
+
+    case "$command" in
+    "7za")
+        std_output=$($command_7za x -aoa -p"null" -- "$input_file" 2>&1)
+        exit_code=$?
+
+        if ((exit_code != 0)) && grep -i -q "wrong password" <<<"$std_output"; then
+            local password=""
+            __temp_dir_exit && __temp_dir_remove
+            password=$(__get_password) || exit 1
+            __temp_dir_cd
+            std_output=$($command_7za x -aoa -p"$password" -- "$input_file" 2>&1)
+            exit_code=$?
+        fi
+        ;;
+    "ar") std_output=$(ar x -- "$input_file" 2>&1) ;;
+    "bsdtar")
+        std_output=$(bsdtar --passphrase "null" -xf "$input_file" 2>&1)
+        exit_code=$?
+
+        if ((exit_code != 0)) && grep -i -q "incorrect passphrase" <<<"$std_output"; then
+            local password=""
+            __temp_dir_exit && __temp_dir_remove
+            password=$(__get_password) || exit 1
+            __temp_dir_cd
+            std_output=$(bsdtar --passphrase "$password" -xf "$input_file" 2>&1)
+            exit_code=$?
+        fi
+        ;;
+    "bzip2") std_output=$(bzip2 -d -c -k -- "$input_file" >"$filename") ;;
+    "cpio") std_output=$(cpio -idv <"$input_file" 2>&1) ;;
+    "gpg") std_output=$(gpg --batch --yes --decrypt --output "$filename" -- "$input_file" 2>&1) ;;
+    "gzip") std_output=$(gzip -d -c -k -- "$input_file" >"$filename") ;;
+    "lha") std_output=$(lha -e "$input_file" 2>&1) ;;
+    "lrzip") std_output=$(lrzip -d -o "$temp_dir_output/$filename" -- "$input_file" 2>&1) ;;
+    "lz4") std_output=$(lz4 -d -c -- "$input_file" >"$filename") ;;
+    "lzip") std_output=$(lzip -d -c -k -- "$input_file" >"$filename") ;;
+    "lzop") std_output=$(lzop -d -- "$input_file" 2>&1) ;;
+    "tar+bzip2") std_output=$(tar --extract --bzip2 --file="$input_file" 2>&1) ;;
+    "tar+gzip") std_output=$(tar --extract --gzip --file="$input_file" 2>&1) ;;
+    "tar+lrzip") std_output=$(lrztar -d "$input_file" 2>&1) ;;
+    "tar+lzip") std_output=$(tar --extract --lzip --file="$input_file" 2>&1) ;;
+    "tar+lz4") std_output=$(lz4 -d -c -- "$input_file" | tar xf -) ;;
+    "tar+lzma") std_output=$(tar --extract --lzma --file="$input_file" 2>&1) ;;
+    "tar+lzop") std_output=$(tar --extract --lzop --file="$input_file" 2>&1) ;;
+    "tar+xz") std_output=$(tar --extract --xz --file="$input_file" 2>&1) ;;
+    "tar+z") std_output=$(tar --extract --file="$input_file" 2>&1) ;;
+    "tar+zstd") std_output=$(zstd -f -d -c -- "$input_file" | tar xf -) ;;
+    "tar") std_output=$(tar --extract --file="$input_file" 2>&1) ;;
+    "unar")
+        std_output=$(unar -- "$input_file" 2>&1)
+        exit_code=$?
+
+        if ((exit_code != 0)) && grep -i -q "requires a password" <<<"$std_output"; then
+            local password=""
+            __temp_dir_exit && __temp_dir_remove
+            password=$(__get_password) || exit 1
+            __temp_dir_cd
+            std_output=$(unar -force-overwrite -password "$password" -- "$input_file" 2>&1)
+            exit_code=$?
+        fi
+        ;;
+    "unrar")
+        std_output=$(unrar x -p"null" -- "$input_file" 2>&1)
+        exit_code=$?
+
+        if ((exit_code != 0)) && grep -i -q "incorrect password for" <<<"$std_output"; then
+            local password=""
+            __temp_dir_exit && __temp_dir_remove
+            password=$(__get_password) || exit 1
+            __temp_dir_cd
+            std_output=$(unrar x -p"$password" -- "$input_file" 2>&1)
+            exit_code=$?
+        fi
+        ;;
+    "unsquashfs") std_output=$(unsquashfs "$input_file" 2>&1) ;;
+    "unzip")
+        std_output=$(unzip -P "null" -- "$input_file" 2>&1)
+        exit_code=$?
+
+        if ((exit_code != 0)) && grep -i -q "incorrect password" <<<"$std_output"; then
+            local password=""
+            __temp_dir_exit && __temp_dir_remove
+            password=$(__get_password) || exit 1
+            __temp_dir_cd
+            std_output=$(unzip -P "$password" -- "$input_file" 2>&1)
+            exit_code=$?
+        fi
+        ;;
+    "xorriso") std_output=$(xorriso -osirrox on -indev "$input_file" -- -extract / . -rollback_end 2>&1) ;;
+    "xz") std_output=$(xz -d -c -k -- "$input_file" >"$filename") ;;
+    "zpaq") std_output=$(zpaq x "$input_file" 2>&1) ;;
+    "zstd") std_output=$(zstd -d -c -- "$input_file" >"$filename") ;;
+    "bsdtar+unar+7za")
+        exit_code=1
+
+        # Try to extract with 'bsdtar'.
+        if ((exit_code != 0)); then
+            std_output=$(bsdtar -xf "$input_file" 2>&1)
+            exit_code=$?
+        fi
+
+        # Try to extract with 'unar'.
+        if ((exit_code != 0)); then
+            std_output=$(unar -- "$input_file" 2>&1)
+            exit_code=$?
+        fi
+
+        # Try to extract with '7za'.
+        if ((exit_code != 0)); then
+            std_output=$($command_7za x -aoa -- "$input_file" 2>&1)
+            exit_code=$?
+        fi
+
+        if ((exit_code != 0)); then
+            std_output="Could not recognize the archive format."
+        fi
+        ;;
+    esac
+
+    # Check for result errors.
+    local exit_code_last=$?
+    if ((exit_code != 0)) || ((exit_code_last != 0)); then
+        _check_output "1" "$std_output" "$input_file" ""
+
+        # If all extracted files have zero bytes, then abort.
+        local non_zero_files=""
+        non_zero_files=$(find . -type f ! -size 0 2>/dev/null)
+        if [[ -z "$non_zero_files" ]]; then
+            __temp_dir_exit && __temp_dir_remove
+            exit 1
+        fi
+    fi
+
+    # Fix permissions of extracted files in "iso" archive format.
+    if [[ "${input_file,,}" == *".iso" ]]; then
+        chmod --recursive u+rw -- .
+    fi
+
+    # Check if the archive has just one item (single file/directory compressed).
+    local count_root_items=""
+    local single_root_item=""
+    count_root_items=$(find . -mindepth 1 -maxdepth 1 2>/dev/null | wc -l)
+    if ((count_root_items == 1)); then
+        single_root_item=$(find . -mindepth 1 -maxdepth 1 2>/dev/null)
+        single_root_item="${single_root_item#./}"
+    fi
+
+    # Check if the 'temp_dir_output' is empty.
+    if ((count_root_items == 0)); then
+        __temp_dir_exit && __temp_dir_remove
+        exit 1
+    fi
+
+    __temp_dir_exit
+
+    # Move the items to the correct directory.
+    if [[ "$single_root_item" == "$filename" ]] || [[ "$(_strip_filename_extension "$single_root_item")" == "$filename" ]]; then
+        # For archives with "one item with the same name of the archive".
+        # For example: "README.txt.tar.gz" or "README.tar.gz".
+        std_output=$(_move_file "rename" "$temp_dir_output/$single_root_item" "$output_dir/$single_root_item" 2>&1)
+        _check_output "$?" "$std_output" "$input_file" ""
+    elif [[ "$single_root_item" == "squashfs-root" ]] && [[ "$command" == "unsquashfs" ]]; then
+        # For the "squashfs" archive format.
+        std_output=$(_move_file "rename" "$temp_dir_output/$single_root_item" "$output_dir/$filename" 2>&1)
+        _check_output "$?" "$std_output" "$input_file" ""
+    else
+        # For archives with "one item with a different name of the archive" or "multiple items".
+        std_output=$(_move_file "rename" "$temp_dir_output" "$output_dir/$filename" 2>&1)
+        _check_output "$?" "$std_output" "$input_file" ""
+    fi
+
+    __temp_dir_remove
+}
+
+_all_commands_exists() {
+    local commands=$1
+
+    local command=""
+    local commands_array=()
+    IFS=" " read -r -a commands_array <<<"$commands"
+
+    for command in "${commands_array[@]}"; do
+        if ! _command_exists "$command"; then
+            return 1
+        fi
+    done
+    return 0
+}
+
+_main "$@"

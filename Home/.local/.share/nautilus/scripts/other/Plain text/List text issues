@@ -1,0 +1,92 @@
+#!/usr/bin/env bash
+# install_keyboard_shortcut=<Control><Alt>2
+
+# Source the script 'common-functions.sh'.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+ROOT_DIR=$(grep --only-matching "^.*scripts[^/]*" <<<"$SCRIPT_DIR")
+source "$ROOT_DIR/common-functions.sh"
+
+_main() {
+    local input_files=""
+
+    # Execute initial checks.
+    _check_dependencies ""
+    _display_wait_box "2"
+    input_files=$(_get_files "par_type=file; par_recursive=true; par_get_pwd=true; par_select_mime='text/|application/json'")
+
+    # Execute the function '_main_task' for each file in parallel.
+    _run_task_parallel "$input_files" ""
+
+    local std_output=""
+    std_output=$(_storage_text_read_all)
+    std_output=$(_text_sort "$std_output")
+
+    _display_list_box "$std_output" "--column=Issues;--column=File"
+}
+
+_main_task() {
+    local input_file=$1
+    local output_dir=$2
+    local file_encoding=""
+    local file_information=""
+    local issues=""
+
+    file_encoding=$(_get_file_encoding "$input_file")
+    file_information=$(file --dereference --separator "$FIELD_SEPARATOR" --no-pad -- "$input_file" | sed "s|\(.*\)$FIELD_SEPARATOR ||")
+
+    # Run the checker 'non UTF-8 encoding'.
+    if [[ "${file_encoding,,}" != *"us-ascii"* ]] && [[ "${file_encoding,,}" != *"utf-8"* ]]; then
+        issues+="[non UTF-8 encoding]"
+    fi
+
+    # Run the checker 'UTF-8 with BOM'.
+    if [[ "${file_encoding,,}" == *"utf-8"* ]]; then
+        if head -c3 "$input_file" | LC_ALL=C grep --quiet --perl-regexp -m1 '\xef\xbb\xbf'; then
+            issues+="[UTF-8 with BOM]"
+        fi
+    fi
+
+    # Run the checker 'non-LF line break'.
+    if [[ "$file_information" == *"with CR"* ]]; then
+        issues+="[non-LF line break]"
+    fi
+
+    # Run the checker 'trailing spaces' (for Unix and Windows files).
+    if grep --quiet --perl-regexp -m1 "[ \t]\r?$" "$input_file"; then
+        issues+="[trailing spaces]"
+    fi
+
+    # Run the checker 'trailing spaces' (for Mac files).
+    if [[ "$file_information" == *"with CR line"* ]] || [[ "$file_information" == *"with CR, LF line"* ]]; then
+        if cat -A "$input_file" | grep --quiet -m1 " ^M"; then
+            [[ "$issues" != *"trailing spaces"* ]] && issues+="[trailing spaces]"
+        fi
+    fi
+
+    # Run the checker 'mix tabs and spaces' (different lines).
+    if grep --quiet --perl-regexp -m1 "^\t" "$input_file" && grep --quiet --perl-regexp -m1 "^  " "$input_file"; then
+        issues+="[mix tabs and spaces]"
+    fi
+
+    # Run the checker 'mix tabs and spaces' (same line).
+    if grep --quiet --perl-regexp -m1 "\t " "$input_file" || grep --quiet --perl-regexp -m1 " \t" "$input_file"; then
+        [[ "$issues" != *"mix tabs and spaces"* ]] && issues+="[mix tabs and spaces]"
+    fi
+
+    # Run the checker 'missing line at the end'.
+    if ! tail -c 1 "$input_file" | hexdump -e '16/1 "%02x" "\n"' | grep --quiet -m1 "0d\|0a"; then
+        issues+="[missing line at the end]"
+    else
+        if tail -c 3 "$input_file" | hexdump -e '16/1 "%02x" "\n"' | grep --quiet -m1 "..0d0d\|..0a0a\|0a0d0a"; then
+            # Run the checker 'has many line breaks at the end'.
+            issues+="[extra lines at the end]"
+        fi
+    fi
+
+    # Save the result only for files with issues.
+    if [[ -n "$issues" ]]; then
+        _storage_text_write_ln "$issues$FIELD_SEPARATOR$(_text_remove_pwd "$input_file")"
+    fi
+}
+
+_main "$@"

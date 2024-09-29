@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# install_keyboard_shortcut=F7
+
+# Source the script 'common-functions.sh'.
+SCRIPT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
+ROOT_DIR=$(grep --only-matching "^.*scripts[^/]*" <<<"$SCRIPT_DIR")
+source "$ROOT_DIR/common-functions.sh"
+
+_main() {
+    local input_files=""
+
+    # Execute initial checks.
+    case "${XDG_CURRENT_DESKTOP,,}" in
+    *"kde"* | *"lxqt"*)
+        _check_dependencies "command=filelight"
+        ;;
+    *)
+        _check_dependencies "command=baobab"
+        ;;
+    esac
+    input_files=$(_get_files "par_type=directory; par_max_items=20; par_get_pwd=true")
+    _unset_global_variables_file_manager
+
+    _open_app "$input_files"
+}
+
+_open_app() {
+    local input_files=$1
+    local input_file=""
+
+    for input_file in $input_files; do
+        # Run the main process.
+        if _command_exists "baobab"; then
+            baobab -- "$input_file" &
+        elif _command_exists "filelight"; then
+            filelight -- "$input_file" &
+        fi
+    done
+}
+
+_main "$@"
