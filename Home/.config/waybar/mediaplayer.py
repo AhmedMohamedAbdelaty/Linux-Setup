@@ -10,22 +10,22 @@ gi.require_version('Playerctl', '2.0')
 
 logger = logging.getLogger(__name__)
 
-
-def write_output(text, player):
+def write_output(text, player, progress=None):
     logger.info('Writing output')
 
     output = {'text': text,
               'class': 'custom-' + player.props.player_name,
               'alt': player.props.player_name}
 
+    if progress is not None:
+        output['progress'] = progress
+
     sys.stdout.write(json.dumps(output) + '\n')
     sys.stdout.flush()
-
 
 def on_play(player, status, manager):
     logger.info('Received new playback status')
     on_metadata(player, player.props.metadata, manager)
-
 
 def on_metadata(player, metadata, manager):
     logger.info('Received new metadata')
@@ -47,8 +47,14 @@ def on_metadata(player, metadata, manager):
     if player.props.status != 'Playing' and track_info:
         track_info = '   ' + track_info
 
-    write_output(track_info, player)
+    # Get the progress of the current track
+    progress = None
+    if 'mpris:length' in metadata.keys():
+        length = metadata['mpris:length'] / 1000000  # convert to seconds
+        position = player.get_position() / 1000000  # convert to seconds
+        progress = position / length
 
+    write_output(track_info, player, progress)
 
 def on_player_appeared(manager, player, selected_player=None):
     if player is not None and (selected_player is None or player.name == selected_player):
@@ -57,12 +63,10 @@ def on_player_appeared(manager, player, selected_player=None):
         logger.debug(
             "New player appeared, but it's not the selected player, skipping")
 
-
 def on_player_vanished(manager, player):
     logger.info('Player has vanished')
     sys.stdout.write('\n')
     sys.stdout.flush()
-
 
 def init_player(manager, name):
     logger.debug('Initialize player: {player}'.format(player=name.name))
@@ -72,14 +76,12 @@ def init_player(manager, name):
     manager.manage_player(player)
     on_metadata(player, player.props.metadata, manager)
 
-
 def signal_handler(sig, frame):
     logger.debug('Received signal to stop, exiting')
     sys.stdout.write('\n')
     sys.stdout.flush()
     # loop.quit()
     sys.exit(0)
-
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -91,7 +93,6 @@ def parse_arguments():
     parser.add_argument('--player')
 
     return parser.parse_args()
-
 
 def main():
     arguments = parse_arguments()
@@ -128,7 +129,6 @@ def main():
         init_player(manager, player)
 
     loop.run()
-
 
 if __name__ == '__main__':
     main()

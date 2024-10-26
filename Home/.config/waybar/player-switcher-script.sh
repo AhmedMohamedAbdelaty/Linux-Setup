@@ -20,3 +20,15 @@ if [ -n "$selected_player" ]; then
 else
     notify-send "No player selected" "Operation cancelled"
 fi
+
+# Add support for navigation between controllers
+case "$1" in
+    next)
+        playerctl -p "$selected_player" next
+        ;;
+    previous)
+        playerctl -p "$selected_player" previous
+        ;;
+    *)
+        ;;
+esac
