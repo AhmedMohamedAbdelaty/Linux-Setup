@@ -20,6 +20,11 @@ def format_time_remaining(delta):
         return f"{hours}h {minutes}m"
     return f"{minutes}m"
 
+def format_time_12hr(time_str):
+    # Convert 24-hour format to 12-hour format
+    time_obj = datetime.strptime(time_str, "%H:%M")
+    return time_obj.strftime("%I:%M %p").lstrip("0")
+
 def time_until_next_prayer(prayer_times):
     # Get current time in Cairo timezone
     cairo_tz = pytz.timezone('Africa/Cairo')
@@ -51,9 +56,10 @@ def main():
         prayer_times = fetch_prayer_times()
         next_prayer, time_remaining = time_until_next_prayer(prayer_times)
 
+        # Create tooltip with 12-hour format
         tooltip = "Prayer Times:\n"
         for prayer, time in prayer_times.items():
-            tooltip += f"{prayer}: {time}\n"
+            tooltip += f"{prayer}: {format_time_12hr(time)}\n"
 
         output = {
             "text": f"{next_prayer} in {time_remaining}",
