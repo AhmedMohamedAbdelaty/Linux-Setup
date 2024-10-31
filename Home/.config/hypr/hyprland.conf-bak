@@ -77,7 +77,6 @@ input {
     sensitivity = 0
     force_no_accel = 0
     numlock_by_default = true
-    scroll_factor = 1.4000000000000001
 }
 
 # See https://wiki.hyprland.org/Configuring/Keywords/#executing
@@ -108,7 +107,6 @@ gestures {
 dwindle {
     pseudotile = yes
     preserve_split = yes
-    smart_split = false
 }
 
 # See https://wiki.hyprland.org/Configuring/Master-Layout/
@@ -151,38 +149,3 @@ source = ~/.config/hypr/userprefs.conf # initially empty, to be configured by us
 source = ~/.config/hypr/nvidia.conf # auto sourced vars for nvidia
 
 env = NIXOS_OZONE_WL=1
-
-decoration {
-
-    blur {
-        enabled = true
-        size = 8
-        passes = 2
-        new_optimizations = true
-        contrast = 1
-        brightness = 0.85
-    }
-
-    rounding = 7
-    inactive_opacity = 0.9999999999999999
-    active_opacity = 1
-    drop_shadow = false
-    dim_inactive = false
-}
-
-general {
-    gaps_in = 2
-    gaps_out = 3
-    gaps_workspaces = 4
-    border_size = 2
-    hover_icon_on_border = false
-}
-
-group {
-    auto_group = true
-
-    groupbar {
-        enabled = true
-    }
-
-}
