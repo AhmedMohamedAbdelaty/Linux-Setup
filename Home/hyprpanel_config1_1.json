@@ -1,0 +1,350 @@
+{
+  "bar.customModules.updates.pollingInterval": 1440000,
+  "theme.font.name": "SF Arabic",
+  "theme.font.size": "0.9rem",
+  "theme.font.weight": 600,
+  "tear": true,
+  "theme.bar.floating": false,
+  "theme.bar.buttons.enableBorders": true,
+  "theme.bar.border_radius": "0.4em",
+  "theme.bar.buttons.workspaces.enableBorder": false,
+  "bar.workspaces.show_icons": false,
+  "bar.workspaces.show_numbered": false,
+  "theme.bar.buttons.volume.enableBorder": false,
+  "menus.media.hideAuthor": true,
+  "menus.media.hideAlbum": false,
+  "menus.volume.raiseMaximumVolume": true,
+  "menus.clock.time.hideSeconds": true,
+  "menus.clock.weather.location": "Cairo",
+  "menus.clock.weather.unit": "imperial",
+  "bar.workspaces.showAllActive": true,
+  "bar.workspaces.showWsIcons": false,
+  "bar.workspaces.showApplicationIcons": false,
+  "bar.workspaces.applicationIconOncePerWorkspace": false,
+  "bar.workspaces.monitorSpecific": false,
+  "bar.workspaces.workspaceMask": false,
+  "theme.bar.buttons.windowtitle.enableBorder": false,
+  "bar.windowtitle.label": true,
+  "theme.bar.buttons.systray.enableBorder": true,
+  "bar.media.show_label": true,
+  "theme.bar.transparent": true,
+  "bar.layouts": {
+    "0": {
+      "left": [
+        "dashboard",
+        "workspaces",
+        "windowtitle"
+      ],
+      "middle": [
+        "media"
+      ],
+      "right": [
+        "volume",
+        "clock",
+        "notifications"
+      ]
+    },
+    "1": {
+      "left": [
+        "dashboard",
+        "workspaces",
+        "netstat",
+        "windowtitle"
+      ],
+      "middle": [
+        "media"
+      ],
+      "right": [
+        "systray",
+        "volume",
+        "network",
+        "battery",
+        "clock",
+        "notifications"
+      ]
+    },
+    "2": {
+      "left": [
+        "dashboard",
+        "workspaces",
+        "windowtitle"
+      ],
+      "middle": [
+        "media"
+      ],
+      "right": [
+        "volume",
+        "clock",
+        "notifications"
+      ]
+    }
+  },
+  "theme.bar.buttons.workspaces.smartHighlight": true,
+  "theme.bar.scaling": 85,
+  "theme.bar.buttons.borderSize": "0.1em",
+  "theme.bar.outer_spacing": "2em",
+  "theme.bar.buttons.y_margins": "0em",
+  "theme.bar.buttons.radius": "0.6em",
+  "theme.bar.layer": "top",
+  "theme.bar.margin_top": "1em",
+  "theme.bar.margin_sides": "0.5em",
+  "theme.bar.buttons.dashboard.enableBorder": false,
+  "theme.bar.location": "top",
+  "bar.workspaces.numbered_active_indicator": "underline",
+  "bar.workspaces.hideUnoccupied": false,
+  "bar.windowtitle.custom_title": true,
+  "bar.volume.label": true,
+  "bar.bluetooth.label": false,
+  "bar.media.truncation": true,
+  "bar.notifications.show_total": false,
+  "menus.clock.time.military": false,
+  "bar.clock.format": "%a %b %d  %I:%M %p",
+  "menus.dashboard.stats.enable_gpu": false,
+  "bar.customModules.netstat.networkInterface": "",
+  "theme.bar.buttons.modules.kbLayout.enableBorder": false,
+  "theme.bar.menus.monochrome": true,
+  "wallpaper.pywal": true,
+  "theme.bar.menus.border.radius": "0.7em",
+  "theme.matugen": false,
+  "theme.bar.margin_bottom": "0em",
+  "theme.osd.duration": 2500,
+  "theme.osd.orientation": "horizontal",
+  "theme.osd.location": "top",
+  "theme.osd.margins": "50px 0px 0px 0px",
+  "theme.osd.muted_zero": true,
+  "theme.osd.radius": "0.6em",
+  "wallpaper.image": "/home/chiko/Pictures/Link%20to%20W&P/wallhaven-5g9ed8.png",
+  "theme.bar.buttons.monochrome": false,
+  "bar.workspaces.scroll_speed": 5,
+  "wallpaper.enable": true,
+  "theme.matugen_settings.mode": "dark",
+  "theme.bar.buttons.spacing": "0.25em",
+  "theme.bar.buttons.padding_y": "0.2rem",
+  "theme.bar.menus.menu.power.scaling": 100,
+  "theme.bar.buttons.padding_x": "0.7rem",
+  "theme.bar.opacity": 100,
+  "theme.bar.buttons.opacity": 100,
+  "scalingPriority": "gdk",
+  "notifications.active_monitor": true,
+  "theme.bar.buttons.modules.netstat.enableBorder": false,
+  "bar.customModules.netstat.icon": "󰣺",
+  "bar.customModules.netstat.labelType": "full",
+  "bar.customModules.netstat.round": true,
+  "bar.customModules.kbLayout.icon": "",
+  "bar.customModules.kbLayout.labelType": "code",
+  "bar.customModules.kbLayout.leftClick": "",
+  "bar.customModules.updates.icon": "󰏖",
+  "menus.dashboard.powermenu.avatar.image": "/home/ahmed/Pictures/c0571731870e1c5af7bf3fbe2d421e99.jpg",
+  "notifications.timeout": 7000,
+  "menus.dashboard.shortcuts.left.shortcut1.icon": "",
+  "menus.dashboard.shortcuts.left.shortcut2.command": "spotify",
+  "menus.dashboard.shortcuts.left.shortcut4.command": "fuzzel",
+  "menus.dashboard.shortcuts.left.shortcut1.command": "brave",
+  "menus.dashboard.shortcuts.left.shortcut1.tooltip": "Brave",
+  "menus.dashboard.directories.left.directory1.command": "bash -c \"nautilus $HOME/Downloads/\"",
+  "menus.dashboard.directories.left.directory2.command": "bash -c \"nautilus $HOME/Videos/\"",
+  "menus.dashboard.directories.left.directory3.command": "bash -c \"nautilus /media/ahmed/DEV/\"",
+  "menus.dashboard.directories.right.directory1.command": "bash -c \"nautilus $HOME/Documents/\"",
+  "menus.dashboard.directories.right.directory2.command": "bash -c \"nautilus $HOME/Pictures/\"",
+  "menus.dashboard.directories.right.directory3.command": "bash -c \"nautilus $HOME/\"",
+  "log_level": "LOG_LEVEL_INFO",
+  "log_subprocesses_to_journal": true,
+  "dbus": {
+    "enabled": true,
+    "connect_timeout": "20s",
+    "connect_interval": "0.200s",
+    "notifications": {
+      "enabled": true
+    },
+    "systray": {
+      "enabled": true
+    },
+    "shortcuts": {
+      "enabled": true
+    },
+    "brightness": {
+      "enabled": true,
+      "adjust_step_percent": 5,
+      "min_brightness": 1,
+      "enable_logind": true,
+      "hud_notifications": true
+    },
+    "power": {
+      "enabled": true,
+      "low_percent": 10,
+      "critical_percent": 5,
+      "low_command": "",
+      "critical_command": "",
+      "hud_notifications": true
+    }
+  },
+  "audio": {
+    "enabled": true,
+    "volume_step_percent": 5,
+    "volume_exceed_maximum": false,
+    "hud_notifications": true
+  },
+  "panels": [
+    {
+      "id": "panel0",
+      "edge": "EDGE_RIGHT",
+      "size": 64,
+      "monitor": "",
+      "modules": [
+        {
+          "pager": {
+            "icon_size": 12,
+            "active_monitor_only": false,
+            "scroll_wrap_workspaces": true,
+            "scroll_include_inactive": true,
+            "enable_workspace_names": false,
+            "pinned": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "ignore_windows": []
+          }
+        },
+        {
+          "spacer": {
+            "size": 16,
+            "expand": false
+          }
+        },
+        {
+          "taskbar": {
+            "icon_size": 48,
+            "active_workspace_only": true,
+            "active_monitor_only": true,
+            "group_tasks": true,
+            "hide_indicators": false,
+            "expand": true,
+            "max_size": 0,
+            "pinned": []
+          }
+        },
+        {
+          "spacer": {
+            "size": 16,
+            "expand": false
+          }
+        },
+        {
+          "systray": {
+            "icon_size": 22,
+            "menu_icon_size": 22,
+            "auto_hide_statuses": [
+              "STATUS_UNSPECIFIED",
+              "STATUS_PASSIVE",
+              "STATUS_ACTIVE"
+            ],
+            "auto_hide_delay": "4s",
+            "pinned": [
+              "nm-applet",
+              "chrome_status_icon_1"
+            ],
+            "modules": [
+              {
+                "power": {
+                  "icon_size": 22,
+                  "icon_symbolic": true
+                }
+              }
+            ]
+          }
+        },
+        {
+          "notifications": {
+            "icon_size": 24,
+            "notification_icon_size": 48,
+            "default_timeout": "7s",
+            "position": "POSITION_TOP_RIGHT",
+            "margin": 24,
+            "persistent": []
+          }
+        },
+        {
+          "hud": {
+            "notification_icon_size": 64,
+            "timeout": "2s",
+            "position": "POSITION_BOTTOM",
+            "margin": 256
+          }
+        },
+        {
+          "spacer": {
+            "size": 16,
+            "expand": false
+          }
+        },
+        {
+          "audio": {
+            "icon_size": 32,
+            "icon_symbolic": true,
+            "command_mixer": "pavucontrol"
+          }
+        },
+        {
+          "spacer": {
+            "size": 16,
+            "expand": false
+          }
+        },
+        {
+          "clock": {
+            "time_format": "15:04",
+            "date_format": "2006-01-02",
+            "tooltip_time_format": "15:04",
+            "tooltip_date_format": "Mon, 02 Jan 2006 MST",
+            "additional_regions": [
+              "America/Los_Angeles",
+              "America/Chicago",
+              "America/New_York",
+              "Europe/London"
+            ]
+          }
+        },
+        {
+          "spacer": {
+            "size": 16,
+            "expand": false
+          }
+        },
+        {
+          "session": {
+            "icon_size": 48,
+            "icon_symbolic": true,
+            "overlay_icon_size": 96,
+            "overlay_icon_symbolic": true,
+            "command_logout": "loginctl terminate-session $XDG_SESSION_ID",
+            "command_reboot": "systemctl reboot",
+            "command_suspend": "systemctl suspend",
+            "command_shutdown": "systemctl poweroff"
+          }
+        },
+        {
+          "spacer": {
+            "size": 16,
+            "expand": false
+          }
+        }
+      ]
+    }
+  ],
+  "menus.bluetooth.showBattery": true,
+  "menus.clock.weather.key": "22b7f3537fa4da3978cdd4360f888378",
+  "menus.dashboard.powermenu.avatar.name": "Ahmed Muhammed",
+  "theme.bar.menus.menu.dashboard.profile.radius": "0.7em",
+  "menus.dashboard.shortcuts.left.shortcut3.command": "vesktop",
+  "menus.dashboard.directories.left.directory1.label": "󰉍  Downloads",
+  "menus.dashboard.directories.left.directory2.label": "󰉏  Videos",
+  "menus.dashboard.directories.left.directory3.label": "󰚝  DEV",
+  "menus.dashboard.directories.right.directory1.label": "󱧶  Documents",
+  "menus.dashboard.directories.right.directory2.label": "󰉏  Pictures",
+  "menus.dashboard.directories.right.directory3.label": "󱂵  Home",
+  "theme.bar.buttons.modules.updates.enableBorder": false
+}
