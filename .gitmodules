@@ -1,6 +1,3 @@
 [submodule "Home/.config/ags"]
     path = Home/.config/ags
     url = https://github.com/Jas-SinghFSU/HyprPanel.git
-[submodule "Home/.local/.share/nautilus/scripts/ahmed"]
-	path = Home/.local/.share/nautilus/scripts/ahmed
-	url = https://github.com/AhmedMohamedAbdelaty/dotfiles
